@@ -647,16 +647,204 @@ Lunar Strategy is the parent organization of Espressio AI — custom AI systems 
 
 <hr>
 
+<h2>Phase 2 — Additional AI-SEO wins <span class="tag pos">Optional but high leverage</span></h2>
+
+<p class="lead">Ship these after the core 6 steps land. Each is genuine incremental lift, not busy-work.</p>
+
+<h3>7 · IndexNow — instant Bing / Copilot indexing <span class="tag">30 min</span></h3>
+
+<p>IndexNow is a free protocol from Microsoft (also used by Yandex, Naver, Seznam) that lets you ping search engines the moment content publishes — indexes within minutes instead of days. <b>Critical for Lunar</b> because Bing powers ChatGPT Search and Microsoft Copilot — faster Bing indexing = faster AI citation refresh.</p>
+
+<h4>Setup</h4>
+<ol>
+  <li><b>Generate a key:</b> create a 32-character hex string (any random generator). For example: <code class="inline">8a3f9b2e7c1d6a5e4f8b9c2d1e3f5a7b</code></li>
+  <li><b>Host the key verification file:</b> create a Webflow page at <code class="inline">/{key}.txt</code> (e.g. <code class="inline">/8a3f9b2e7c1d6a5e4f8b9c2d1e3f5a7b.txt</code>) containing only that same key as plain text. This proves you own the domain.</li>
+  <li><b>Verify in Bing Webmaster:</b> Bing Webmaster → IndexNow tab → enter the key and the key file location. Verification is automatic.</li>
+  <li><b>Wire up auto-submission via Webflow + Zapier (or Make):</b>
+    <ul>
+      <li>Trigger: "Webflow: New CMS Item Published" (Blog Posts collection)</li>
+      <li>Action: HTTP POST to <code class="inline">https://api.indexnow.org/indexnow</code> with body:
+        <div class="code-block">
+          <div class="code-header"><span class="lang">IndexNow POST payload</span><div class="actions"><button onclick="copyBlock(this, 'block-indexnow')">Copy</button></div></div>
+<pre id="block-indexnow">{
+  "host": "www.lunarstrategy.com",
+  "key": "YOUR_32_CHAR_KEY_HERE",
+  "keyLocation": "https://www.lunarstrategy.com/YOUR_32_CHAR_KEY_HERE.txt",
+  "urlList": [
+    "https://www.lunarstrategy.com/article/{{trigger.slug}}"
+  ]
+}</pre>
+        </div>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<div class="callout success"><b>Verify:</b> after publishing a new blog post, Zapier's run log should show 200 OK from api.indexnow.org. Bing Webmaster → IndexNow tab will show submitted URLs and crawl status.</div>
+
+<h3>8 · HowTo schema on the Crypto Marketing Playbook 2026 <span class="tag">15 min</span></h3>
+
+<p>Step-by-step guides get HowTo rich snippets in Google — large image, numbered steps, expandable. Lunar's flagship guide at <code class="inline">/guides/crypto-marketing-in-2026-a-complete-playbook</code> qualifies. Same pattern works on any other "how to" or "ultimate guide" page.</p>
+
+<div class="path">
+  <b>Webflow Designer</b>
+  <span class="step">→</span> open the playbook page directly (or the guides CMS template if guides are CMS-driven)
+  <span class="step">→</span> Page Settings → Custom Code → <b>Inside &lt;head&gt; tag</b>
+  <span class="step">→</span> paste below
+</div>
+
+<div class="callout warn"><b>Edit the steps list</b> to match the actual H2/H3 sections in the playbook. The template below has placeholder step names — replace with the real chapter headings.</div>
+
+<div class="code-block">
+  <div class="code-header"><span class="lang">HTML &lt;script&gt; — HowTo schema for playbook</span><div class="actions"><button onclick="copyBlock(this, 'block-howto')">Copy</button></div></div>
+<pre id="block-howto">&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Complete Crypto Marketing Playbook 2026",
+  "description": "Step-by-step playbook for marketing a crypto, Web3, DeFi, or RWA project from launch to scale.",
+  "image": "{{Cover Image URL}}",
+  "totalTime": "PT45M",
+  "estimatedCost": {
+    "@type": "MonetaryAmount",
+    "currency": "USD",
+    "value": "0"
+  },
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Step 1 name", "text": "Brief description of step 1.", "url": "https://www.lunarstrategy.com/guides/crypto-marketing-in-2026-a-complete-playbook#step-1" },
+    { "@type": "HowToStep", "position": 2, "name": "Step 2 name", "text": "Brief description of step 2.", "url": "https://www.lunarstrategy.com/guides/crypto-marketing-in-2026-a-complete-playbook#step-2" },
+    { "@type": "HowToStep", "position": 3, "name": "Step 3 name", "text": "Brief description of step 3.", "url": "https://www.lunarstrategy.com/guides/crypto-marketing-in-2026-a-complete-playbook#step-3" }
+  ]
+}
+&lt;/script&gt;
+</pre>
+</div>
+
+<h3>9 · FAQPage schema on FAQ / Services pages <span class="tag">15 min</span></h3>
+
+<p>If any page on lunarstrategy.com has a Q&amp;A section (services pricing FAQs, "common questions about token launches", etc.), wrapping it with FAQPage schema unlocks expandable FAQ rich snippets in Google search — dominates SERP real estate.</p>
+
+<div class="path">
+  <b>Webflow Designer</b>
+  <span class="step">→</span> open the page with the FAQ block
+  <span class="step">→</span> Page Settings → Custom Code → <b>Inside &lt;head&gt; tag</b>
+  <span class="step">→</span> paste below
+  <span class="step">→</span> <b>edit each Question/Answer pair</b> to match the on-page content
+</div>
+
+<div class="code-block">
+  <div class="code-header"><span class="lang">HTML &lt;script&gt; — FAQPage schema</span><div class="actions"><button onclick="copyBlock(this, 'block-faq')">Copy</button></div></div>
+<pre id="block-faq">&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What does Lunar Strategy do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lunar Strategy is a specialist crypto and Web3 marketing agency. We deliver go-to-market, community management, social, influencer, yap, and PR campaigns for crypto, DeFi, AI, and RWA projects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long is a typical engagement?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most engagements run 3–12 months depending on scope. Token launches often pair a 6–8 week intensive pre-launch sprint with ongoing community + growth retainer."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you work with non-crypto projects?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Our focus is crypto, Web3, DeFi, and AI x crypto projects. We occasionally support AI infrastructure and Real World Asset projects that intersect with our crypto network."
+      }
+    }
+  ]
+}
+&lt;/script&gt;
+</pre>
+</div>
+
+<div class="callout warn"><b>Important Google policy:</b> the questions and answers in the schema MUST match the questions and answers visible on the page. Don't add hidden FAQs just for schema — Google penalizes that. If a page doesn't already have an FAQ block, add the visual block first, then add the matching schema.</div>
+
+<h3>10 · Microsoft Clarity <span class="tag">10 min</span> <span class="tag pos">Free</span></h3>
+
+<p>Free Microsoft product: heatmaps, session recordings, ML-powered insights ("rage clicks", "dead clicks"). Sits in the Bing Webmaster sidebar already. Complements GA4 with behavioral "why" data.</p>
+
+<ol>
+  <li><b>Bing Webmaster Tools</b> → left sidebar → <b>Microsoft Clarity</b> → Sign up / connect</li>
+  <li>Clarity gives you a tracking script tag</li>
+  <li>Paste into Webflow → Project Settings → Custom Code → <b>Head Code</b> (alongside the schemas)</li>
+  <li>Publish. Within 2 hours Clarity starts recording sessions.</li>
+</ol>
+
+<div class="callout info"><b>Privacy note:</b> Clarity respects DNT and is GDPR-compliant out of the box. Worth adding a mention to the cookie/privacy policy when you go live.</div>
+
+<hr>
+
+<h2>Phase 3 — Authority signals (quarterly, ongoing)</h2>
+
+<p class="lead">Slower-compound entity-recognition work. Most of this is a one-time setup per platform. Worth blocking out ~2 hours quarterly.</p>
+
+<table>
+  <tr><th>Platform</th><th>What to do</th><th>Why</th></tr>
+  <tr>
+    <td><b>Wikidata</b></td>
+    <td>Create entity for "Lunar Strategy" with properties: instance of (marketing agency), founded (2019), founders, services, sameAs links to Twitter/LinkedIn/website</td>
+    <td>AI engines (ChatGPT, Claude, Perplexity, Gemini) all reference Wikidata heavily for entity disambiguation. Single highest-leverage authority signal.</td>
+  </tr>
+  <tr>
+    <td><b>Wikipedia</b></td>
+    <td>Draft a neutral, sourced article about Lunar Strategy. Requires established notability via independent media coverage — start with a sandbox draft.</td>
+    <td>Wikipedia is the #1 cited source by every AI assistant. Hard to get accepted; high reward when it lands.</td>
+  </tr>
+  <tr>
+    <td><b>CrunchBase</b></td>
+    <td>Claim / update the Lunar Strategy profile. Add team members, funding (if any), recent press, services.</td>
+    <td>Major data source for B2B search engines, AI assistants, journalists. Free Pro tier for verified owners.</td>
+  </tr>
+  <tr>
+    <td><b>Clutch.co</b></td>
+    <td>Already sending referral traffic — claim/optimize the profile. Get 2-3 client reviews.</td>
+    <td>Top crypto agencies are on Clutch. Reviews compound.</td>
+  </tr>
+  <tr>
+    <td><b>Sortlist · DesignRush · GoodFirms</b></td>
+    <td>Free agency directory profiles</td>
+    <td>Aggregator citations help AI engines confirm Lunar exists + is a real business</td>
+  </tr>
+  <tr>
+    <td><b>G2 (if any product/SaaS)</b></td>
+    <td>N/A unless Lunar launches a product</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><b>Bing Pages</b></td>
+    <td>Free business profile that shows up in the Bing search sidebar (analogous to Google Business Profile)</td>
+    <td>Lifts brand-query visibility in Bing / Copilot</td>
+  </tr>
+</table>
+
+<hr>
+
 <h2>Priority order if pressed for time</h2>
 
 <table>
   <tr><th>Priority</th><th>Step</th><th>Why</th></tr>
-  <tr><td><b>1</b></td><td>Step 5 — Article + BreadcrumbList</td><td>Biggest single lift. Blog posts currently have nothing.</td></tr>
-  <tr><td><b>2</b></td><td>Step 1 — robots.txt AI allowlist</td><td>2 min. Unlocks AI crawler access.</td></tr>
-  <tr><td><b>3</b></td><td>Step 2 — llms.txt</td><td>5 min. Direct citation source for AI assistants.</td></tr>
-  <tr><td><b>4</b></td><td>Step 3 — WebSite schema</td><td>Quick paste.</td></tr>
-  <tr><td><b>5</b></td><td>Step 4 — Enhanced Organization</td><td>Improves existing; lower marginal lift.</td></tr>
-  <tr><td>6 (optional)</td><td>Step 6 — ProfessionalService</td><td>Marginal — only do if everything else is done.</td></tr>
+  <tr><td><b>1</b></td><td>Step 5 — Article + BreadcrumbList on blog template</td><td>Biggest single lift. Blog posts currently have zero structured data.</td></tr>
+  <tr><td><b>2</b></td><td>Step 7 — IndexNow (Phase 2)</td><td>Instant Bing/Copilot/ChatGPT indexing on every publish.</td></tr>
+  <tr><td><b>3</b></td><td>Step 1 — robots.txt AI allowlist</td><td>2 min. Unlocks AI crawler intent signal.</td></tr>
+  <tr><td><b>4</b></td><td>Step 2 — llms.txt</td><td>5 min. Direct citation source for AI assistants.</td></tr>
+  <tr><td><b>5</b></td><td>Step 8 — HowTo schema on playbook + Step 9 — FAQ schema</td><td>SERP rich-snippet unlock for high-traffic pages.</td></tr>
+  <tr><td><b>6</b></td><td>Step 3 — WebSite schema</td><td>Quick paste.</td></tr>
+  <tr><td><b>7</b></td><td>Step 4 — Enhanced Organization</td><td>Improves existing; lower marginal lift.</td></tr>
+  <tr><td><b>8</b></td><td>Step 10 — Microsoft Clarity</td><td>Free behavioral analytics, sets up in 10 min.</td></tr>
+  <tr><td>9 (optional)</td><td>Step 6 — ProfessionalService</td><td>Marginal lift.</td></tr>
+  <tr><td>10 (ongoing)</td><td>Phase 3 — Authority signals (Wikidata, CrunchBase, Clutch, Sortlist)</td><td>Quarterly maintenance, compound over time.</td></tr>
 </table>
 
 <footer>
