@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Lunar Strategy · AI-SEO Implementation — Webflow Handoff</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #6366f1;
+    --accent-soft: #eef2ff;
+    --pos: #059669;
+    --neg: #dc2626;
+    --warn: #d97706;
+    --code-bg: #0f172a;
+    --code-text: #f1f5f9;
+    --code-comment: #94a3b8;
+    --highlight-bg: #fef3c7;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.55; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 32px; }
+  header .eyebrow { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); padding: 4px 10px; background: var(--accent-soft); border-radius: 999px; margin-bottom: 12px; }
+  h1 { font-size: 30px; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 8px 0; }
+  header p { color: var(--muted); margin: 4px 0 0 0; font-size: 15px; }
+  h2 { font-size: 22px; letter-spacing: -0.01em; margin: 56px 0 14px; padding-top: 24px; border-top: 1px solid var(--border); }
+  h2:first-of-type { padding-top: 0; border-top: 0; }
+  h3 { font-size: 15px; margin: 24px 0 10px; color: var(--text); font-weight: 600; }
+  p, li { font-size: 15px; color: var(--text); }
+  p.lead { color: var(--muted); font-size: 15px; }
+  ul, ol { padding-left: 22px; }
+  ul li, ol li { margin: 6px 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  code.inline { font-family: 'SF Mono', Menlo, Monaco, 'JetBrains Mono', monospace; font-size: 13px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: var(--text); border: 1px solid var(--border); }
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; }
+  .tag.warn { background: #fef3c7; color: #92400e; }
+  .tag.pos { background: #d1fae5; color: #065f46; }
+  .path {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .path b { color: var(--text); font-weight: 600; }
+  .path .step { display: inline-block; margin: 0 6px; opacity: 0.5; }
+
+  /* Code block container with copy button */
+  .code-block {
+    position: relative;
+    margin: 16px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--code-bg);
+    border: 1px solid #1e293b;
+  }
+  .code-block .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #1e293b; color: var(--code-comment);
+    padding: 8px 14px;
+    font-size: 12px;
+    border-bottom: 1px solid #334155;
+  }
+  .code-block .code-header .lang { font-family: 'SF Mono', Menlo, monospace; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--code-comment); }
+  .code-block .actions { display: flex; gap: 6px; }
+  .code-block button {
+    background: rgba(255,255,255,0.06); color: #f1f5f9; border: 1px solid rgba(255,255,255,0.12);
+    padding: 4px 10px; font-size: 11px; border-radius: 5px; cursor: pointer; font-family: inherit; font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: background 0.15s;
+  }
+  .code-block button:hover { background: rgba(255,255,255,0.12); }
+  .code-block button.copied { background: #059669; color: white; border-color: #059669; }
+  .code-block pre {
+    margin: 0; padding: 14px 16px;
+    font-family: 'SF Mono', Menlo, Monaco, 'JetBrains Mono', monospace;
+    font-size: 12.5px; line-height: 1.6;
+    color: var(--code-text);
+    overflow-x: auto;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .code-block pre .c { color: #64748b; font-style: italic; }
+  .code-block pre .s { color: #fde68a; }
+  .code-block pre .k { color: #a5b4fc; }
+  .code-block pre .n { color: #f9a8d4; }
+
+  /* Callouts */
+  .callout {
+    border-radius: 8px; padding: 14px 16px; margin: 16px 0;
+    border: 1px solid;
+    font-size: 14px;
+  }
+  .callout.info { border-color: #bfdbfe; background: #eff6ff; color: #1e3a8a; }
+  .callout.warn { border-color: #fde68a; background: #fffbeb; color: #78350f; }
+  .callout.success { border-color: #a7f3d0; background: #ecfdf5; color: #065f46; }
+
+  /* TL;DR card */
+  .tldr { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin: 24px 0 40px; }
+  .tldr h3 { margin-top: 0; }
+  .tldr ol { margin: 8px 0 0 0; padding-left: 22px; }
+
+  /* Priority table */
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  th { font-weight: 600; color: var(--muted); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; background: var(--surface); }
+
+  /* Print-friendly */
+  @media print {
+    body { background: white; }
+    .code-block button { display: none; }
+    .wrap { max-width: none; padding: 24px; }
+  }
+
+  hr { border: 0; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  footer { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Developer Handoff</div>
+  <h1>Lunar Strategy — AI-SEO Implementation</h1>
+  <p>Five Webflow edits + one downloadable file. Estimated work: <b>30–45 minutes</b>, all paste-and-publish.</p>
+</header>
+
+<div class="tldr">
+  <h3>The five things to ship</h3>
+  <ol>
+    <li><b>robots.txt</b> — replace contents (Project Settings → SEO)</li>
+    <li><b>/llms.txt</b> — new Webflow page with plain-text content (download attached file)</li>
+    <li><b>WebSite schema</b> — add to project-level head code</li>
+    <li><b>Organization schema</b> — replace existing project-level block with enhanced version</li>
+    <li><b>Article + BreadcrumbList schema</b> — add to Blog Posts CMS template head code (biggest leverage)</li>
+  </ol>
+  <p style="margin: 10px 0 0 0; font-size: 13.5px; color: var(--muted);">After publishing, validate via the <a href="https://search.google.com/test/rich-results" target="_blank">Rich Results Test</a>.</p>
+</div>
+
+<h2>Why these specific changes</h2>
+<p class="lead">
+  Lunar Strategy is already being cited <b>2,200+ times in 3 months</b> by Microsoft Copilot, Bing Chat, and partner AI products (verified in Bing Webmaster's AI Performance dashboard). Top cited content: VC firm lists, NFT minting platforms, token launch guides. The fixes below extend this momentum to non-Microsoft AI engines (ChatGPT, Claude, Perplexity, Gemini) and unlock rich snippets in Google search for blog posts.
+</p>
+<table>
+  <tr><th>Current state</th><th>Gap</th></tr>
+  <tr>
+    <td><code class="inline">robots.txt</code> only has a Sitemap line</td>
+    <td>No explicit Allow for GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc. — AI crawlers may de-prioritize without it.</td>
+  </tr>
+  <tr>
+    <td>No <code class="inline">/llms.txt</code></td>
+    <td>AI assistants have nothing concise to cite when summarizing Lunar. They fall back to scraping pages, often producing inaccurate summaries.</td>
+  </tr>
+  <tr>
+    <td>Only <code class="inline">Organization</code> schema on the homepage</td>
+    <td>Missing <code class="inline">WebSite</code> schema (site-root entity AI engines look for), plus enhanced fields like <code class="inline">knowsAbout</code>, <code class="inline">foundingDate</code>, <code class="inline">subOrganization</code>.</td>
+  </tr>
+  <tr>
+    <td>Blog posts have <b>zero</b> structured data</td>
+    <td>No <code class="inline">Article</code>, no <code class="inline">BreadcrumbList</code>. Articles compete against competitors with rich snippets and lose CTR.</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>1 · robots.txt <span class="tag">2 min</span></h2>
+
+<div class="path">
+  <b>Webflow Designer</b>
+  <span class="step">→</span> top-left avatar
+  <span class="step">→</span> <b>Project Settings</b>
+  <span class="step">→</span> <b>SEO</b> tab
+  <span class="step">→</span> scroll to <b>"robots.txt"</b> textarea
+  <span class="step">→</span> replace entire contents with the block below
+  <span class="step">→</span> <b>Save</b>
+  <span class="step">→</span> <b>Publish</b> the project
+</div>
+
+<div class="code-block">
+  <div class="code-header"><span class="lang">robots.txt</span>
+    <div class="actions">
+      <button onclick="copyBlock(this, 'block-robots')">Copy</button>
+      <button onclick="downloadAs('robots.txt', getBlockText('block-robots'))">Download</button>
+    </div>
+  </div>
+<pre id="block-robots"># robots.txt for Lunar Strategy
+# https://www.lunarstrategy.com
+
+User-agent: *
+Allow: /
+
+# AI crawlers — explicitly allow so content can be cited
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+# Sitemap
+Sitemap: https://www.lunarstrategy.com/sitemap.xml
+</pre>
+</div>
+
+<div class="callout success">
+  <b>Verify:</b> Open <a href="https://www.lunarstrategy.com/robots.txt" target="_blank">https://www.lunarstrategy.com/robots.txt</a> — should show all 8 AI crawlers explicitly allowed.
+</div>
+
+<hr>
+
+<h2>2 · /llms.txt <span class="tag">5 min</span></h2>
+
+<p class="lead">
+  Create a new Webflow page that serves at the URL <code class="inline">/llms.txt</code> — AI assistants check this path for a concise site summary they can cite.
+</p>
+
+<h3>Setup in Webflow</h3>
+<div class="path">
+  <b>Pages panel</b>
+  <span class="step">→</span> <b>+</b> to create new page
+  <span class="step">→</span> name: <code class="inline">llms</code>
+  <span class="step">→</span> slug: <code class="inline">llms.txt</code>
+  <span class="step">→</span> Page Settings: <b>SEO</b> → Indexing = "Allow search engines to index this page"
+  <span class="step">→</span> use minimal/blank layout if available
+</div>
+
+<h3>Body content</h3>
+<p>Add a single <b>Plain Text</b> element to the page body (or paste into a Rich Text block — Plain Text preferred). Paste the full llms.txt content below, or use the Download button to save the file and upload its contents into the Webflow text block.</p>
+
+<div class="callout info">
+  <b>Optional:</b> if you want the page to truly look like a plain-text response (no Webflow nav/footer), add this to the page's <b>Custom Code → Head Code</b>:
+  <code class="inline">&lt;style&gt;nav, footer, .w-nav, .w-footer { display: none !important; } body { font-family: monospace; white-space: pre-wrap; padding: 24px; max-width: 900px; }&lt;/style&gt;</code>
+</div>
+
+<div class="code-block">
+  <div class="code-header"><span class="lang">llms.txt</span>
+    <div class="actions">
+      <button onclick="copyBlock(this, 'block-llms')">Copy</button>
+      <button onclick="downloadAs('llms.txt', getBlockText('block-llms'))">Download as llms.txt</button>
+    </div>
+  </div>
+<pre id="block-llms"># Lunar Strategy
+
+&gt; Lunar Strategy is a specialist crypto and Web3 marketing agency. Since 2019, we've delivered Go-To-Market, community, social, influencer, and PR campaigns for 250+ crypto, DeFi, AI, and RWA ecosystems — helping leading teams enter the infofi era with creative campaigns and growth initiatives.
+
+We work end-to-end with crypto and Web3 founders: defining their narrative, building their community on Discord and X, running influencer programs through our 600+ creator network, and securing media coverage. Most engagements pair narrative work with execution that compounds over time.
+
+## Services
+
+- **Go-To-Market Strategy** — Positioning, messaging, and audience clarity to launch with direction and narrative focus.
+- **Community Management** — Complete Discord community infrastructure to build sticky, scalable, and self-sustaining growth.
+- **Social Media Marketing** — Content strategy and execution on X to grow visibility and engage with your ecosystem in real time.
+- **Influencer Strategy** — Influencer campaigns powered by top crypto voices aligned with your message and goals.
+- **Yap Strategy** — Targeted campaigns through a 600+ creator network designed to drive awareness and traction across Crypto X.
+- **PR** — Narrative development and media placements to get your story published and seen in the right places.
+
+## Who we work with
+
+Growth-stage crypto, Web3, DeFi, AI, and RWA projects looking for marketing partners who understand the technology and the audiences. We've worked with 250+ ecosystems including L1/L2 chains, DeFi protocols, NFT projects, infrastructure, and onchain games.
+
+## Key pages
+
+- [Homepage](https://www.lunarstrategy.com/) — Overview of services and approach
+- [Services](https://www.lunarstrategy.com/services) — Detailed offering breakdown
+- [Case Studies](https://www.lunarstrategy.com/our-cases) — Past engagements and outcomes (Polkadot, Cardano, and others)
+- [Book a Meeting](https://www.lunarstrategy.com/book-a-meeting) — Schedule a discovery call
+- [Discovery Call](https://www.lunarstrategy.com/lunarstrategy/discovery-call) — Calendly booking
+- [Specialists](https://www.lunarstrategy.com/lunar-specialists) — Team and contributors
+- [Blog](https://www.lunarstrategy.com/blog) — Long-form content on crypto marketing, token launches, growth playbooks
+- [Crypto Marketing Playbook 2026](https://www.lunarstrategy.com/guides/crypto-marketing-in-2026-a-complete-playbook) — Flagship guide
+- [Careers](https://www.lunarstrategy.com/careers) — Open roles
+
+## Notable content
+
+- [Top 5 AI Blockchain Projects](https://www.lunarstrategy.com/article/top-5-ai-blockchain-projects)
+- [Top 50 Strategic Crypto VC Investment Funds](https://www.lunarstrategy.com/article/top-50-strategic-crypto-vc-investment-funds)
+- [Best 10 Web3 Incubators](https://www.lunarstrategy.com/article/best-10-web3-incubators-to-leverage-for-growth-in-2024)
+- [Token Launch Strategy Guide](https://www.lunarstrategy.com/article/token-launch-strategy-guide)
+- [Crypto Twitter Marketing Guide](https://www.lunarstrategy.com/article/crypto-twitter-marketing-guide-master-threads)
+
+## Team
+
+- **Tim Haldorsson** — CEO
+- **Jack Haldorsson** — Managing Partner (jack@lunarstrategy.com)
+- **Shann Holmberg** — Managing Partner
+- **Adam Westerén** — Head of Sales
+- **Luka Mrkić** — Head of BD
+- **Amanda Arrage** — Sales Assistant
+
+## Sister brand
+
+Lunar Strategy is the parent organization of Espressio AI — custom AI systems for marketing operations. Built by the same team to solve internal execution bottlenecks, now deployed for growth teams. See https://espressio.ai
+
+## Contact
+
+- Email: info@lunarstrategy.com
+- Twitter/X: @lunarstrategy
+- LinkedIn: linkedin.com/company/lunarstrategy
+- Telegram: t.me/jacklunar
+- Hours: Monday–Friday, 09:00–18:00 (EU)
+</pre>
+</div>
+
+<div class="callout success">
+  <b>Verify:</b> after publishing, open <a href="https://www.lunarstrategy.com/llms.txt" target="_blank">https://www.lunarstrategy.com/llms.txt</a>. Should return the content above (HTTP 200, viewable in browser).
+</div>
+
+<hr>
+
+<h2>3 · WebSite schema (site-wide) <span class="tag">3 min</span></h2>
+
+<div class="path">
+  <b>Project Settings</b>
+  <span class="step">→</span> <b>Custom Code</b> tab
+  <span class="step">→</span> <b>Head Code</b> section
+  <span class="step">→</span> append the block below (do not replace existing content — append after anything that's there)
+  <span class="step">→</span> <b>Save Changes</b>
+  <span class="step">→</span> <b>Publish</b>
+</div>
+
+<div class="code-block">
+  <div class="code-header"><span class="lang">HTML &lt;script&gt; — paste into Project Settings → Custom Code → Head Code</span>
+    <div class="actions">
+      <button onclick="copyBlock(this, 'block-website')">Copy</button>
+    </div>
+  </div>
+<pre id="block-website">&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Lunar Strategy",
+  "alternateName": "Lunar",
+  "url": "https://www.lunarstrategy.com",
+  "description": "Specialist crypto and Web3 marketing agency. Go-to-market, community, social, influencer, and PR for 250+ ecosystems since 2019.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Lunar Strategy",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://cdn.prod.website-files.com/684807441792526c9388329c/6848195a5531260e598aedaf_Logo.svg"
+    }
+  },
+  "inLanguage": "en-US"
+}
+&lt;/script&gt;
+</pre>
+</div>
+
+<hr>
+
+<h2>4 · Enhanced Organization schema (replace existing) <span class="tag">5 min</span></h2>
+
+<p class="lead">The site already has an Organization schema in Custom Code. Find it and replace the entire <code class="inline">&lt;script type="application/ld+json"&gt;...Organization...&lt;/script&gt;</code> block with the enhanced version below. Adds <code class="inline">knowsAbout</code>, <code class="inline">foundingDate</code>, <code class="inline">subOrganization</code> (Espressio AI), <code class="inline">slogan</code>, and <code class="inline">areaServed</code>.</p>
+
+<div class="path">
+  <b>Project Settings</b>
+  <span class="step">→</span> <b>Custom Code</b>
+  <span class="step">→</span> <b>Head Code</b>
+  <span class="step">→</span> find the existing Organization JSON-LD block
+  <span class="step">→</span> replace with the block below
+  <span class="step">→</span> <b>Save</b> and <b>Publish</b>
+</div>
+
+<div class="code-block">
+  <div class="code-header"><span class="lang">HTML &lt;script&gt; — REPLACES existing Organization block</span>
+    <div class="actions">
+      <button onclick="copyBlock(this, 'block-org')">Copy</button>
+    </div>
+  </div>
+<pre id="block-org">&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Lunar Strategy",
+  "alternateName": "Lunar",
+  "description": "Since 2019, we've worked together with 250+ ecosystems and projects in the Crypto space. We help leading teams into the infofi era with creative campaigns and growth initiatives.",
+  "url": "https://www.lunarstrategy.com",
+  "logo": {
+    "@type": "ImageObject",
+    "url": "https://cdn.prod.website-files.com/684807441792526c9388329c/6848195a5531260e598aedaf_Logo.svg"
+  },
+  "email": "info@lunarstrategy.com",
+  "foundingDate": "2019",
+  "areaServed": "Worldwide",
+  "slogan": "Crypto marketing for the infofi era",
+  "knowsAbout": [
+    "Crypto Marketing",
+    "Web3 Marketing",
+    "Blockchain Marketing",
+    "DeFi Marketing",
+    "Token Launches",
+    "Go-To-Market Strategy",
+    "Discord Community Management",
+    "Crypto Twitter Marketing",
+    "Influencer Marketing",
+    "Crypto PR",
+    "Yap Strategy",
+    "Real World Assets (RWA)",
+    "Layer 1 / Layer 2 Marketing"
+  ],
+  "subOrganization": {
+    "@type": "Organization",
+    "name": "Espressio AI",
+    "url": "https://espressio.ai",
+    "description": "AI systems for marketing operations — sister brand from the Lunar Strategy team."
+  },
+  "sameAs": [
+    "https://twitter.com/lunarstrategy",
+    "https://www.linkedin.com/company/lunarstrategy",
+    "https://www.facebook.com/lunarstrategy",
+    "https://t.me/jacklunar"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "Sales",
+    "email": "info@lunarstrategy.com",
+    "availableLanguage": "en",
+    "hoursAvailable": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "09:00",
+      "closes": "18:00"
+    }
+  },
+  "employee": [
+    { "@type": "Person", "name": "Tim Haldorsson", "jobTitle": "CEO" },
+    { "@type": "Person", "name": "Jack Haldorsson", "jobTitle": "Managing Partner", "email": "jack@lunarstrategy.com" },
+    { "@type": "Person", "name": "Shann Holmberg", "jobTitle": "Managing Partner" },
+    { "@type": "Person", "name": "Adam Westerén", "jobTitle": "Head of Sales" },
+    { "@type": "Person", "name": "Luka Mrkić", "jobTitle": "Head of BD" },
+    { "@type": "Person", "name": "Amanda Arrage", "jobTitle": "Sales Assistant" }
+  ],
+  "makesOffer": [
+    { "@type": "Service", "name": "Go-To-Market Strategy", "description": "Positioning, messaging, and audience clarity to launch with direction and narrative focus." },
+    { "@type": "Service", "name": "Community Management", "description": "Complete Discord community infrastructure to build sticky, scalable and self-sustaining growth." },
+    { "@type": "Service", "name": "Social Media Marketing", "description": "Content strategy and execution on X to grow visibility and engage with your ecosystem in real time." },
+    { "@type": "Service", "name": "Influencer Strategy", "description": "Influencer campaigns powered by top crypto voices aligned with your message and goals." },
+    { "@type": "Service", "name": "Yap Strategy", "description": "Targeted campaigns through a 600+ creator network designed to drive awareness and traction across Crypto X." },
+    { "@type": "Service", "name": "PR", "description": "Narrative development and media placements to get your story published and seen in the right places." }
+  ],
+  "inLanguage": "en"
+}
+&lt;/script&gt;
+</pre>
+</div>
+
+<hr>
+
+<h2>5 · Article + BreadcrumbList on blog template <span class="tag">10 min</span> <span class="tag warn">Biggest leverage</span></h2>
+
+<p class="lead">
+  Blog posts currently have <b>zero structured data</b>. Adding Article + BreadcrumbList gives them rich snippets in Google search (lifts CTR 15–30%) and gives AI engines clean signals (headline, author, date) to cite.
+</p>
+
+<div class="path">
+  <b>Webflow Designer</b>
+  <span class="step">→</span> <b>Pages panel</b> (left sidebar)
+  <span class="step">→</span> find the <b>Blog Posts</b> CMS Collection template page (the page that starts with the dynamic icon, usually at <code class="inline">article/[slug]</code>)
+  <span class="step">→</span> click the <b>gear icon</b> on the template
+  <span class="step">→</span> scroll to <b>Custom Code</b> → <b>Inside &lt;head&gt; tag</b>
+  <span class="step">→</span> paste the block below
+  <span class="step">→</span> <b>Save</b> and <b>Publish</b>
+</div>
+
+<div class="callout warn">
+  <b>Webflow CMS tokens.</b> Replace the placeholder tokens below (<code class="inline">{{Title}}</code>, <code class="inline">{{Meta Description}}</code>, etc.) with the actual Webflow CMS field references for your blog collection. Use the <b>"Add field"</b> picker (looks like a <code class="inline">+</code> button) inside the custom code editor — that inserts the correct token syntax for each field. Common field names: Title, Meta Description, Main Image, Published Date, Author Name, Slug. Adapt to whatever your collection calls them.
+</div>
+
+<div class="code-block">
+  <div class="code-header"><span class="lang">HTML &lt;script&gt; — paste into Blog Posts template page → Inside &lt;head&gt; tag</span>
+    <div class="actions">
+      <button onclick="copyBlock(this, 'block-article')">Copy</button>
+    </div>
+  </div>
+<pre id="block-article">&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{Title}}",
+  "description": "{{Meta Description}}",
+  "image": "{{Main Image url}}",
+  "datePublished": "{{Published Date}}",
+  "dateModified": "{{Updated Date}}",
+  "author": {
+    "@type": "Person",
+    "name": "{{Author Name}}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Lunar Strategy",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://cdn.prod.website-files.com/684807441792526c9388329c/6848195a5531260e598aedaf_Logo.svg"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://www.lunarstrategy.com/article/{{Slug}}"
+  },
+  "inLanguage": "en"
+}
+&lt;/script&gt;
+
+&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://www.lunarstrategy.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Blog",
+      "item": "https://www.lunarstrategy.com/blog"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{Title}}",
+      "item": "https://www.lunarstrategy.com/article/{{Slug}}"
+    }
+  ]
+}
+&lt;/script&gt;
+</pre>
+</div>
+
+<hr>
+
+<h2>6 · (Optional) ProfessionalService schema for homepage <span class="tag">3 min</span></h2>
+
+<p class="lead">If you want Lunar's offering to be discoverable as a service entity (helpful for queries like "crypto marketing agency"):</p>
+
+<div class="path">
+  <b>Webflow Designer</b>
+  <span class="step">→</span> open the <b>Homepage</b>
+  <span class="step">→</span> page <b>gear icon</b>
+  <span class="step">→</span> <b>Custom Code</b> → <b>Inside &lt;head&gt; tag</b>
+  <span class="step">→</span> paste the block
+</div>
+
+<div class="code-block">
+  <div class="code-header"><span class="lang">HTML &lt;script&gt; — Homepage Custom Code (optional)</span>
+    <div class="actions">
+      <button onclick="copyBlock(this, 'block-service')">Copy</button>
+    </div>
+  </div>
+<pre id="block-service">&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Lunar Strategy — Crypto Marketing Agency",
+  "description": "Full-service crypto and Web3 marketing: go-to-market, community management, social, influencer, yap, and PR for crypto, DeFi, AI, and RWA projects.",
+  "url": "https://www.lunarstrategy.com",
+  "image": "https://cdn.prod.website-files.com/684807441792526c9388329c/686fbfd55767e62f25a92364_Lunar%20Strategy.png",
+  "priceRange": "$$$",
+  "areaServed": {
+    "@type": "Place",
+    "name": "Worldwide"
+  },
+  "serviceType": [
+    "Crypto Marketing",
+    "Web3 Marketing",
+    "Blockchain Growth",
+    "Token Launch Marketing",
+    "Discord Community Management",
+    "Crypto Influencer Marketing",
+    "Crypto PR"
+  ]
+}
+&lt;/script&gt;
+</pre>
+</div>
+
+<hr>
+
+<h2>Verification checklist</h2>
+
+<p class="lead">After publishing all changes, run these checks (~5 min total):</p>
+
+<ol>
+  <li>
+    <b>robots.txt:</b> open <a href="https://www.lunarstrategy.com/robots.txt" target="_blank">https://www.lunarstrategy.com/robots.txt</a> — should show all 8 AI crawlers explicitly allowed and the sitemap line.
+  </li>
+  <li>
+    <b>llms.txt:</b> open <a href="https://www.lunarstrategy.com/llms.txt" target="_blank">https://www.lunarstrategy.com/llms.txt</a> — should return HTTP 200 with the plain-text content visible.
+  </li>
+  <li>
+    <b>Homepage structured data:</b> paste <code class="inline">https://www.lunarstrategy.com</code> into the
+    <a href="https://search.google.com/test/rich-results" target="_blank">Google Rich Results Test</a>.
+    Should detect: <b>Organization</b>, <b>WebSite</b>, and (if step 6 was done) <b>ProfessionalService</b>. Zero errors.
+  </li>
+  <li>
+    <b>Blog post structured data:</b> paste any URL from <code class="inline">/article/...</code> into the same test.
+    Should detect: <b>Article</b> + <b>BreadcrumbList</b>. Zero errors. Confirm fields populated (headline, author, datePublished).
+  </li>
+  <li>
+    <b>Schema.org validator (deeper check):</b>
+    <a href="https://validator.schema.org" target="_blank">validator.schema.org</a> — paste same URLs, confirm no validation warnings.
+  </li>
+</ol>
+
+<div class="callout info">
+  <b>Expected impact timeline:</b> robots.txt + llms.txt take effect on AI crawlers' next visit (typically 1–7 days). Article schema appears in Google search results within 1–4 weeks. Bing AI Performance dashboard already shows 2,200+ AI citations for Lunar in the last 3 months — these changes should accelerate that and extend it to non-Microsoft AI engines.
+</div>
+
+<hr>
+
+<h2>Priority order if pressed for time</h2>
+
+<table>
+  <tr><th>Priority</th><th>Step</th><th>Why</th></tr>
+  <tr><td><b>1</b></td><td>Step 5 — Article + BreadcrumbList</td><td>Biggest single lift. Blog posts currently have nothing.</td></tr>
+  <tr><td><b>2</b></td><td>Step 1 — robots.txt AI allowlist</td><td>2 min. Unlocks AI crawler access.</td></tr>
+  <tr><td><b>3</b></td><td>Step 2 — llms.txt</td><td>5 min. Direct citation source for AI assistants.</td></tr>
+  <tr><td><b>4</b></td><td>Step 3 — WebSite schema</td><td>Quick paste.</td></tr>
+  <tr><td><b>5</b></td><td>Step 4 — Enhanced Organization</td><td>Improves existing; lower marginal lift.</td></tr>
+  <tr><td>6 (optional)</td><td>Step 6 — ProfessionalService</td><td>Marginal — only do if everything else is done.</td></tr>
+</table>
+
+<footer>
+  Generated for Lunar Strategy · AI-SEO implementation. Questions on intent or trade-offs: ping Nick. Generated 2026-05-13.
+</footer>
+
+</div>
+
+<script>
+function getBlockText(id) {
+  // Decode the HTML-escaped content for downloading as plain file
+  const el = document.getElementById(id);
+  const div = document.createElement('div');
+  div.innerHTML = el.innerHTML;
+  return div.textContent;
+}
+
+function copyBlock(btn, id) {
+  const text = getBlockText(id);
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function downloadAs(filename, content) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
+}
+</script>
+
+</body>
+</html>
